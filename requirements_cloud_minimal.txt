@@ -1,0 +1,22 @@
+# Minimal requirements for Streamlit Cloud deployment
+# No OpenCV or heavy dependencies
+
+# Core Streamlit
+streamlit==1.36.0
+
+# Data Processing
+numpy==1.26.4
+pandas==2.2.2
+
+# Visualization
+plotly==5.22.0
+
+# Image Processing (lightweight)
+Pillow==9.5.0
+
+# Utilities
+python-dotenv==1.0.1
+requests==2.32.3
+
+# Excel support
+openpyxl==3.1.2
