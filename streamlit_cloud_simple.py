@@ -94,7 +94,7 @@ st.markdown("""
 if 'processed_results' not in st.session_state:
     st.session_state.processed_results = []
 if 'answer_key' not in st.session_state:
-    st.session_state.answer_key = create_default_answer_key()
+    st.session_state.answer_key = None
 
 def create_default_answer_key():
     """Create a default answer key for demo purposes."""
@@ -224,6 +224,10 @@ def create_sample_omr_image():
 
 def main():
     """Main application function."""
+    # Initialize answer key if not set
+    if st.session_state.answer_key is None:
+        st.session_state.answer_key = create_default_answer_key()
+    
     # Header
     st.markdown('<h1 class="main-header">📊 OMR Evaluation System</h1>', unsafe_allow_html=True)
     st.markdown("### Cloud-Optimized OMR Sheet Processing & Scoring")
