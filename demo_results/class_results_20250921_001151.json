@@ -1,0 +1,122 @@
+[
+  {
+    "total_correct": 27,
+    "total_questions": 100,
+    "total_percentage": 27.0,
+    "subject_scores": [
+      {
+        "subject": "Mathematics",
+        "correct": 5,
+        "total": 20,
+        "percentage": 25.0
+      },
+      {
+        "subject": "Physics",
+        "correct": 6,
+        "total": 20,
+        "percentage": 30.0
+      },
+      {
+        "subject": "Chemistry",
+        "correct": 6,
+        "total": 20,
+        "percentage": 30.0
+      },
+      {
+        "subject": "Biology",
+        "correct": 5,
+        "total": 20,
+        "percentage": 25.0
+      },
+      {
+        "subject": "General_Knowledge",
+        "correct": 5,
+        "total": 20,
+        "percentage": 25.0
+      }
+    ],
+    "student_id": "STUDENT_001",
+    "student_name": "John Doe",
+    "timestamp": "2025-09-21T00:11:51.139433"
+  },
+  {
+    "total_correct": 27,
+    "total_questions": 100,
+    "total_percentage": 27.0,
+    "subject_scores": [
+      {
+        "subject": "Mathematics",
+        "correct": 5,
+        "total": 20,
+        "percentage": 25.0
+      },
+      {
+        "subject": "Physics",
+        "correct": 6,
+        "total": 20,
+        "percentage": 30.0
+      },
+      {
+        "subject": "Chemistry",
+        "correct": 6,
+        "total": 20,
+        "percentage": 30.0
+      },
+      {
+        "subject": "Biology",
+        "correct": 5,
+        "total": 20,
+        "percentage": 25.0
+      },
+      {
+        "subject": "General_Knowledge",
+        "correct": 5,
+        "total": 20,
+        "percentage": 25.0
+      }
+    ],
+    "student_id": "STUDENT_002",
+    "student_name": "Jane Smith",
+    "timestamp": "2025-09-21T00:11:51.141479"
+  },
+  {
+    "total_correct": 27,
+    "total_questions": 100,
+    "total_percentage": 27.0,
+    "subject_scores": [
+      {
+        "subject": "Mathematics",
+        "correct": 5,
+        "total": 20,
+        "percentage": 25.0
+      },
+      {
+        "subject": "Physics",
+        "correct": 6,
+        "total": 20,
+        "percentage": 30.0
+      },
+      {
+        "subject": "Chemistry",
+        "correct": 6,
+        "total": 20,
+        "percentage": 30.0
+      },
+      {
+        "subject": "Biology",
+        "correct": 5,
+        "total": 20,
+        "percentage": 25.0
+      },
+      {
+        "subject": "General_Knowledge",
+        "correct": 5,
+        "total": 20,
+        "percentage": 25.0
+      }
+    ],
+    "student_id": "STUDENT_003",
+    "student_name": "Bob Johnson",
+    "timestamp": "2025-09-21T00:11:51.143038"
+  }
+]
