@@ -1,11 +1,8 @@
-# Advanced OMR Evaluation System Requirements
-# Compatible with Streamlit Cloud deployment
+# Ultra-minimal requirements for Streamlit Cloud deployment
+# Avoiding all problematic dependencies including Pillow
 
 # Core Streamlit
 streamlit>=1.28.0
-
-# Image Processing (using PIL instead of OpenCV)
-Pillow>=9.0.0,<10.0.0
 
 # Data Processing
 numpy>=1.24.0
