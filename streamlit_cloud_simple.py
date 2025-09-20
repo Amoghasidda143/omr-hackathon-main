@@ -222,6 +222,171 @@ def create_sample_omr_image():
     
     return image
 
+def convert_csv_to_answer_key(df):
+    """Convert CSV data to answer key format."""
+    answer_key = {
+        "version": "csv_import",
+        "subjects": {}
+    }
+    
+    # Assume CSV has columns: Subject, Question, Answer
+    if 'Subject' in df.columns and 'Question' in df.columns and 'Answer' in df.columns:
+        for subject in df['Subject'].unique():
+            subject_data = df[df['Subject'] == subject]
+            questions = subject_data['Question'].tolist()
+            answers = subject_data['Answer'].tolist()
+            
+            answer_key["subjects"][subject] = {
+                "questions": questions,
+                "answers": answers
+            }
+    else:
+        # Try alternative format: Question, Answer columns
+        if 'Question' in df.columns and 'Answer' in df.columns:
+            questions = df['Question'].tolist()
+            answers = df['Answer'].tolist()
+            answer_key["subjects"]["General"] = {
+                "questions": questions,
+                "answers": answers
+            }
+        else:
+            raise ValueError("CSV must have 'Subject', 'Question', 'Answer' columns or 'Question', 'Answer' columns")
+    
+    return answer_key
+
+def validate_answer_key(answer_key):
+    """Validate answer key structure."""
+    try:
+        # Check required fields
+        if not isinstance(answer_key, dict):
+            return False
+        
+        if 'version' not in answer_key or 'subjects' not in answer_key:
+            return False
+        
+        # Check subjects structure
+        for subject_name, subject_data in answer_key['subjects'].items():
+            if not isinstance(subject_data, dict):
+                return False
+            
+            if 'questions' not in subject_data or 'answers' not in subject_data:
+                return False
+            
+            questions = subject_data['questions']
+            answers = subject_data['answers']
+            
+            if not isinstance(questions, list) or not isinstance(answers, list):
+                return False
+            
+            if len(questions) != len(answers):
+                return False
+            
+            # Check answer format
+            for answer in answers:
+                if answer not in ['A', 'B', 'C', 'D']:
+                    return False
+        
+        return True
+    except:
+        return False
+
+def create_manual_answer_key(version, subjects_data):
+    """Create answer key from manual input."""
+    answer_key = {
+        "version": version,
+        "subjects": {}
+    }
+    
+    for subject in subjects_data:
+        subject_name = subject['name']
+        start_q = subject['start']
+        end_q = subject['end']
+        answers = subject['answers']
+        
+        questions = list(range(start_q, end_q + 1))
+        answer_list = list(answers)
+        
+        answer_key["subjects"][subject_name] = {
+            "questions": questions,
+            "answers": answer_list
+        }
+    
+    return answer_key
+
+def create_sample_answer_key(version):
+    """Create sample answer key for different versions."""
+    if version == "demo_v1":
+        return create_default_answer_key()
+    elif version == "demo_v2":
+        return {
+            "version": "demo_v2",
+            "subjects": {
+                "Mathematics": {
+                    "questions": list(range(1, 26)),
+                    "answers": ["A", "B", "C", "D", "A", "B", "C", "D", "A", "B", 
+                              "C", "D", "A", "B", "C", "D", "A", "B", "C", "D", "A", "B", "C", "D", "A"]
+                },
+                "Science": {
+                    "questions": list(range(26, 51)),
+                    "answers": ["B", "C", "D", "A", "B", "C", "D", "A", "B", "C", 
+                              "D", "A", "B", "C", "D", "A", "B", "C", "D", "A", "B", "C", "D", "A", "B"]
+                },
+                "English": {
+                    "questions": list(range(51, 76)),
+                    "answers": ["C", "D", "A", "B", "C", "D", "A", "B", "C", "D", 
+                              "A", "B", "C", "D", "A", "B", "C", "D", "A", "B", "C", "D", "A", "B", "C"]
+                }
+            }
+        }
+    elif version == "demo_v3":
+        return {
+            "version": "demo_v3",
+            "subjects": {
+                "Physics": {
+                    "questions": list(range(1, 21)),
+                    "answers": ["A", "B", "C", "D", "A", "B", "C", "D", "A", "B", 
+                              "C", "D", "A", "B", "C", "D", "A", "B", "C", "D"]
+                },
+                "Chemistry": {
+                    "questions": list(range(21, 41)),
+                    "answers": ["B", "C", "D", "A", "B", "C", "D", "A", "B", "C", 
+                              "D", "A", "B", "C", "D", "A", "B", "C", "D", "A"]
+                },
+                "Biology": {
+                    "questions": list(range(41, 61)),
+                    "answers": ["C", "D", "A", "B", "C", "D", "A", "B", "C", "D", 
+                              "A", "B", "C", "D", "A", "B", "C", "D", "A", "B"]
+                }
+            }
+        }
+    else:
+        return create_default_answer_key()
+
+def display_answer_key_summary(answer_key):
+    """Display answer key summary."""
+    st.markdown(f"""
+    <div class="result-card">
+        <h3>📊 Answer Key Summary</h3>
+        <p><strong>Version:</strong> {answer_key['version']}</p>
+        <p><strong>Subjects:</strong> {', '.join(answer_key['subjects'].keys())}</p>
+        <p><strong>Total Questions:</strong> {sum(len(subject['questions']) for subject in answer_key['subjects'].values())}</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Show subject details
+    for subject_name, subject_data in answer_key["subjects"].items():
+        st.write(f"**{subject_name}:** {len(subject_data['questions'])} questions")
+    
+    # Export option
+    if st.button("📥 Export Answer Key"):
+        json_data = json.dumps(answer_key, indent=2)
+        st.download_button(
+            label="Download JSON",
+            data=json_data,
+            file_name=f"answer_key_{answer_key['version']}.json",
+            mime="application/json"
+        )
+
 def main():
     """Main application function."""
     # Initialize answer key if not set
@@ -617,25 +782,178 @@ def show_answer_keys_page():
     """Show answer keys management page."""
     st.header("🔑 Answer Keys Management")
     
-    st.subheader("Current Answer Key")
+    # Upload options
+    st.markdown("""
+    <div class="upload-section">
+        <h3>Manage Answer Keys</h3>
+        <p>Upload answer key files or create them manually for different exam versions</p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Display current answer key
-    answer_key = st.session_state.answer_key
-    st.write(f"**Version:** {answer_key['version']}")
-    st.write(f"**Subjects:** {', '.join(answer_key['subjects'].keys())}")
+    # Answer key management options
+    answer_key_option = st.radio(
+        "Answer Key Management:",
+        ["Upload Answer Key File", "Create Manual Answer Key", "View Current Answer Key", "Use Sample Answer Key"],
+        horizontal=True
+    )
     
-    # Show answer key structure
-    with st.expander("View Answer Key Details"):
-        st.json(answer_key)
+    if answer_key_option == "Upload Answer Key File":
+        st.subheader("📁 Upload Answer Key File")
+        
+        uploaded_file = st.file_uploader(
+            "Choose Answer Key File",
+            type=['json', 'txt', 'csv'],
+            help="Upload a JSON, TXT, or CSV file containing the answer key"
+        )
+        
+        if uploaded_file is not None:
+            try:
+                # Process uploaded file
+                if uploaded_file.type == "application/json":
+                    answer_key_data = json.load(uploaded_file)
+                elif uploaded_file.type == "text/plain":
+                    # Try to parse as JSON first
+                    content = uploaded_file.read().decode('utf-8')
+                    try:
+                        answer_key_data = json.loads(content)
+                    except:
+                        # If not JSON, create a simple format
+                        st.warning("TXT file detected. Please ensure it contains valid JSON format.")
+                        return
+                elif uploaded_file.type == "text/csv":
+                    # Convert CSV to answer key format
+                    df = pd.read_csv(uploaded_file)
+                    answer_key_data = convert_csv_to_answer_key(df)
+                else:
+                    st.error("Unsupported file type. Please upload JSON, TXT, or CSV files.")
+                    return
+                
+                # Validate and set answer key
+                if validate_answer_key(answer_key_data):
+                    st.session_state.answer_key = answer_key_data
+                    st.success("✅ Answer key uploaded successfully!")
+                    display_answer_key_summary(answer_key_data)
+                else:
+                    st.error("❌ Invalid answer key format. Please check your file structure.")
+                    
+            except Exception as e:
+                st.error(f"❌ Error processing file: {str(e)}")
     
-    st.subheader("Answer Key Statistics")
+    elif answer_key_option == "Create Manual Answer Key":
+        st.subheader("✏️ Create Manual Answer Key")
+        
+        st.markdown("""
+        <div class="info-message">
+            <h4>Manual Answer Key Creation</h4>
+            <p>Create a custom answer key by specifying subjects, question ranges, and correct answers.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Answer key version
+        version = st.text_input("Answer Key Version", value="custom_v1", help="Enter a unique version identifier")
+        
+        # Subject management
+        st.subheader("📚 Subject Configuration")
+        
+        if 'manual_subjects' not in st.session_state:
+            st.session_state.manual_subjects = [{"name": "Mathematics", "start": 1, "end": 20, "answers": "A" * 20}]
+        
+        # Add/remove subjects
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            new_subject = st.text_input("Add New Subject", placeholder="e.g., Physics")
+        with col2:
+            if st.button("➕ Add Subject"):
+                if new_subject:
+                    st.session_state.manual_subjects.append({
+                        "name": new_subject,
+                        "start": 1,
+                        "end": 20,
+                        "answers": "A" * 20
+                    })
+                    st.rerun()
+        
+        # Display and edit subjects
+        for i, subject in enumerate(st.session_state.manual_subjects):
+            with st.expander(f"📖 {subject['name']} (Questions {subject['start']}-{subject['end']})"):
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    subject['name'] = st.text_input(f"Subject Name {i+1}", value=subject['name'], key=f"name_{i}")
+                with col2:
+                    subject['start'] = st.number_input(f"Start Question {i+1}", value=subject['start'], min_value=1, key=f"start_{i}")
+                with col3:
+                    subject['end'] = st.number_input(f"End Question {i+1}", value=subject['end'], min_value=subject['start'], key=f"end_{i}")
+                
+                # Answer pattern
+                num_questions = subject['end'] - subject['start'] + 1
+                answer_pattern = st.text_input(
+                    f"Answer Pattern {i+1}",
+                    value=subject['answers'][:num_questions],
+                    max_chars=num_questions,
+                    help=f"Enter {num_questions} answers (A, B, C, D) for questions {subject['start']}-{subject['end']}"
+                )
+                
+                if len(answer_pattern) == num_questions and all(c in 'ABCD' for c in answer_pattern.upper()):
+                    subject['answers'] = answer_pattern.upper()
+                else:
+                    st.warning(f"Please enter exactly {num_questions} answers using A, B, C, or D")
+                
+                # Remove subject button
+                if st.button(f"🗑️ Remove {subject['name']}", key=f"remove_{i}"):
+                    st.session_state.manual_subjects.pop(i)
+                    st.rerun()
+        
+        # Create answer key
+        if st.button("🚀 Create Answer Key", type="primary", use_container_width=True):
+            try:
+                answer_key_data = create_manual_answer_key(version, st.session_state.manual_subjects)
+                st.session_state.answer_key = answer_key_data
+                st.success("✅ Manual answer key created successfully!")
+                display_answer_key_summary(answer_key_data)
+            except Exception as e:
+                st.error(f"❌ Error creating answer key: {str(e)}")
     
-    # Calculate statistics
-    total_questions = sum(len(subject["questions"]) for subject in answer_key["subjects"].values())
-    st.metric("Total Questions", total_questions)
+    elif answer_key_option == "View Current Answer Key":
+        st.subheader("👁️ Current Answer Key")
+        
+        answer_key = st.session_state.answer_key
+        if answer_key:
+            st.write(f"**Version:** {answer_key['version']}")
+            st.write(f"**Subjects:** {', '.join(answer_key['subjects'].keys())}")
+            
+            # Show answer key structure
+            with st.expander("View Answer Key Details"):
+                st.json(answer_key)
+            
+            st.subheader("Answer Key Statistics")
+            
+            # Calculate statistics
+            total_questions = sum(len(subject["questions"]) for subject in answer_key["subjects"].values())
+            st.metric("Total Questions", total_questions)
+            
+            for subject_name, subject_data in answer_key["subjects"].items():
+                st.write(f"**{subject_name}:** {len(subject_data['questions'])} questions")
+        else:
+            st.info("No answer key loaded. Please upload or create one.")
     
-    for subject_name, subject_data in answer_key["subjects"].items():
-        st.write(f"**{subject_name}:** {len(subject_data['questions'])} questions")
+    elif answer_key_option == "Use Sample Answer Key":
+        st.subheader("🎯 Sample Answer Key")
+        
+        st.markdown("""
+        <div class="info-message">
+            <h4>Demo Answer Key</h4>
+            <p>Load a pre-configured sample answer key for testing and demonstration purposes.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        sample_version = st.selectbox("Sample Version", ["demo_v1", "demo_v2", "demo_v3"])
+        
+        if st.button("🎲 Load Sample Answer Key", type="primary", use_container_width=True):
+            sample_answer_key = create_sample_answer_key(sample_version)
+            st.session_state.answer_key = sample_answer_key
+            st.success("✅ Sample answer key loaded successfully!")
+            display_answer_key_summary(sample_answer_key)
 
 def show_about_page():
     """Show about page."""
