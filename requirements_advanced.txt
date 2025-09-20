@@ -15,3 +15,4 @@ plotly>=5.15.0
 
 # Basic utilities
 requests>=2.31.0
+

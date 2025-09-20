@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Ultra-simple Streamlit Cloud deployment script for OMR Evaluation System.
-This version uses minimal dependencies and avoids all problematic packages.
+OMR Evaluation System - Streamlit Cloud Deployment
+This version provides image upload functionality with simulated processing
+to avoid dependency issues while maintaining the core functionality.
 """
 
 import streamlit as st
@@ -11,6 +12,7 @@ import plotly.express as px
 from datetime import datetime
 import json
 import io
+import base64
 
 # Page configuration
 st.set_page_config(
