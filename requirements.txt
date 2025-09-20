@@ -1,8 +1,11 @@
-# Ultra-minimal requirements for Streamlit Cloud deployment
-# Avoiding all problematic dependencies including Pillow
+# OMR Evaluation System with Image Processing
+# Compatible with Streamlit Cloud deployment
 
 # Core Streamlit
 streamlit>=1.28.0
+
+# Image Processing (using PIL for basic image handling)
+Pillow>=10.0.0
 
 # Data Processing
 numpy>=1.24.0
