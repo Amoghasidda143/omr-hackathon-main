@@ -6,3 +6,4 @@ libxrender-dev
 libgomp1
 python3-distutils
 build-essential
+libpq-dev
