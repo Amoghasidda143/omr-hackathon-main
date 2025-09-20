@@ -254,6 +254,97 @@ def convert_csv_to_answer_key(df):
     
     return answer_key
 
+def convert_excel_to_answer_key(df):
+    """Convert Excel data to answer key format."""
+    answer_key = {
+        "version": "excel_import",
+        "subjects": {}
+    }
+    
+    # Clean column names (remove extra spaces, convert to lowercase)
+    df.columns = df.columns.str.strip().str.lower()
+    
+    # Check for different Excel formats
+    if 'subject' in df.columns and 'question' in df.columns and 'answer' in df.columns:
+        # Format 1: Subject, Question, Answer columns
+        for subject in df['subject'].unique():
+            subject_data = df[df['subject'] == subject]
+            questions = subject_data['question'].tolist()
+            answers = subject_data['answer'].tolist()
+            
+            # Convert answers to uppercase
+            answers = [str(answer).upper().strip() for answer in answers]
+            
+            answer_key["subjects"][subject] = {
+                "questions": questions,
+                "answers": answers
+            }
+    elif 'question' in df.columns and 'answer' in df.columns:
+        # Format 2: Question, Answer columns (single subject)
+        questions = df['question'].tolist()
+        answers = df['answer'].tolist()
+        
+        # Convert answers to uppercase
+        answers = [str(answer).upper().strip() for answer in answers]
+        
+        answer_key["subjects"]["General"] = {
+            "questions": questions,
+            "answers": answers
+        }
+    elif 'q' in df.columns and 'a' in df.columns:
+        # Format 3: Q, A columns (shortened names)
+        questions = df['q'].tolist()
+        answers = df['a'].tolist()
+        
+        # Convert answers to uppercase
+        answers = [str(answer).upper().strip() for answer in answers]
+        
+        answer_key["subjects"]["General"] = {
+            "questions": questions,
+            "answers": answers
+        }
+    else:
+        # Try to detect columns automatically
+        possible_question_cols = [col for col in df.columns if 'question' in col.lower() or 'q' in col.lower()]
+        possible_answer_cols = [col for col in df.columns if 'answer' in col.lower() or 'a' in col.lower()]
+        possible_subject_cols = [col for col in df.columns if 'subject' in col.lower() or 's' in col.lower()]
+        
+        if possible_question_cols and possible_answer_cols:
+            question_col = possible_question_cols[0]
+            answer_col = possible_answer_cols[0]
+            
+            if possible_subject_cols:
+                # Multiple subjects
+                subject_col = possible_subject_cols[0]
+                for subject in df[subject_col].unique():
+                    subject_data = df[df[subject_col] == subject]
+                    questions = subject_data[question_col].tolist()
+                    answers = subject_data[answer_col].tolist()
+                    
+                    # Convert answers to uppercase
+                    answers = [str(answer).upper().strip() for answer in answers]
+                    
+                    answer_key["subjects"][subject] = {
+                        "questions": questions,
+                        "answers": answers
+                    }
+            else:
+                # Single subject
+                questions = df[question_col].tolist()
+                answers = df[answer_col].tolist()
+                
+                # Convert answers to uppercase
+                answers = [str(answer).upper().strip() for answer in answers]
+                
+                answer_key["subjects"]["General"] = {
+                    "questions": questions,
+                    "answers": answers
+                }
+        else:
+            raise ValueError("Excel file must have columns for questions and answers. Expected columns: 'Subject', 'Question', 'Answer' or 'Question', 'Answer' or 'Q', 'A'")
+    
+    return answer_key
+
 def validate_answer_key(answer_key):
     """Validate answer key structure."""
     try:
@@ -802,8 +893,8 @@ def show_answer_keys_page():
         
         uploaded_file = st.file_uploader(
             "Choose Answer Key File",
-            type=['json', 'txt', 'csv'],
-            help="Upload a JSON, TXT, or CSV file containing the answer key"
+            type=['json', 'txt', 'csv', 'xlsx', 'xls'],
+            help="Upload a JSON, TXT, CSV, or Excel file containing the answer key"
         )
         
         if uploaded_file is not None:
@@ -824,8 +915,12 @@ def show_answer_keys_page():
                     # Convert CSV to answer key format
                     df = pd.read_csv(uploaded_file)
                     answer_key_data = convert_csv_to_answer_key(df)
+                elif uploaded_file.type in ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-excel"]:
+                    # Convert Excel to answer key format
+                    df = pd.read_excel(uploaded_file)
+                    answer_key_data = convert_excel_to_answer_key(df)
                 else:
-                    st.error("Unsupported file type. Please upload JSON, TXT, or CSV files.")
+                    st.error("Unsupported file type. Please upload JSON, TXT, CSV, or Excel files.")
                     return
                 
                 # Validate and set answer key
