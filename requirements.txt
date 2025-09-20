@@ -4,11 +4,8 @@
 # Core Streamlit
 streamlit
 
-# Computer Vision (using pre-built wheels)
-opencv-python-headless
-numpy
-
 # Data Processing
+numpy
 pandas
 plotly
 

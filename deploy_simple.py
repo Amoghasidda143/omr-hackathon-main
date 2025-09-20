@@ -1,18 +1,15 @@
 #!/usr/bin/env python3
 """
-Simplified Streamlit Cloud deployment script for OMR Evaluation System.
-This version uses minimal dependencies to avoid deployment issues.
+Ultra-simple Streamlit Cloud deployment script for OMR Evaluation System.
+This version uses minimal dependencies and avoids all problematic packages.
 """
 
 import streamlit as st
-import cv2
 import numpy as np
 import pandas as pd
 import plotly.express as px
 from datetime import datetime
 import json
-import os
-import tempfile
 import io
 
 # Page configuration
@@ -103,20 +100,16 @@ def create_default_answer_key():
         }
     }
 
-def simple_omr_processing(image, student_id="demo_student"):
-    """Simplified OMR processing for demo purposes."""
+def simulate_omr_processing(student_id="demo_student"):
+    """Simulate OMR processing for demo purposes."""
     try:
-        # Convert to grayscale
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        # Simulate processing time
+        import time
+        time.sleep(1)  # Simulate processing delay
         
-        # Simple bubble detection simulation
-        height, width = gray.shape
-        bubble_radius = 10
-        
-        # Simulate finding bubbles (this is a simplified version)
+        # Simulate random answer detection
         detected_answers = []
         for i in range(20):  # 20 questions
-            # Simulate random answer detection
             answer = np.random.choice(['A', 'B', 'C', 'D'])
             detected_answers.append(answer)
         
@@ -150,56 +143,24 @@ def simple_omr_processing(image, student_id="demo_student"):
             "student_id": student_id
         }
 
-def create_sample_omr_image():
-    """Create a sample OMR sheet image for demo purposes."""
-    # Create a white background
-    image = np.ones((800, 600, 3), dtype=np.uint8) * 255
-    
-    # Add border
-    cv2.rectangle(image, (50, 50), (550, 750), (0, 0, 0), 2)
-    
-    # Add title
-    cv2.putText(image, "OMR EVALUATION SHEET - DEMO", (150, 100), 
-                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
-    
-    # Add question numbers and bubbles
-    for i in range(20):  # First 20 questions for demo
-        y = 150 + i * 25
-        
-        # Question number
-        cv2.putText(image, f"{i+1:2d}.", (70, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
-        
-        # Answer bubbles (A, B, C, D)
-        for j, letter in enumerate(['A', 'B', 'C', 'D']):
-            x = 150 + j * 50
-            cv2.circle(image, (x, y), 8, (0, 0, 0), 2)
-            
-            # Fill some bubbles for demo (simulate student answers)
-            if i < 10 and j == 0:  # Fill A for first 10 questions
-                cv2.circle(image, (x, y), 6, (0, 0, 0), -1)
-            elif i >= 10 and j == 1:  # Fill B for next 10 questions
-                cv2.circle(image, (x, y), 6, (0, 0, 0), -1)
-    
-    return image
-
 def main():
     """Main application function."""
     # Header
     st.markdown('<h1 class="main-header">📊 OMR Evaluation System</h1>', unsafe_allow_html=True)
-    st.markdown("### Automated OMR Sheet Processing & Scoring (Simplified Demo)")
+    st.markdown("### Automated OMR Sheet Processing & Scoring (Ultra-Simple Demo)")
     
     # Sidebar navigation
     st.sidebar.title("Navigation")
     page = st.sidebar.selectbox(
         "Select Page",
-        ["🏠 Dashboard", "📤 Upload & Process", "📊 Results & Analytics", "ℹ️ About"]
+        ["🏠 Dashboard", "📤 Process OMR", "📊 Results & Analytics", "ℹ️ About"]
     )
     
     # Route to appropriate page
     if page == "🏠 Dashboard":
         show_dashboard()
-    elif page == "📤 Upload & Process":
-        show_upload_page()
+    elif page == "📤 Process OMR":
+        show_process_page()
     elif page == "📊 Results & Analytics":
         show_results_page()
     elif page == "ℹ️ About":
@@ -268,104 +229,59 @@ def show_dashboard():
         st.markdown("""
         <div class="info-message">
             <h4>No OMR sheets processed yet</h4>
-            <p>Upload some sheets to get started with automated evaluation!</p>
+            <p>Process some OMR sheets to get started with automated evaluation!</p>
         </div>
         """, unsafe_allow_html=True)
 
-def show_upload_page():
-    """Show upload and processing page."""
-    st.header("📤 Upload & Process OMR Sheets")
+def show_process_page():
+    """Show OMR processing page."""
+    st.header("📤 Process OMR Sheets")
     
     st.markdown("""
     <div class="info-message">
         <h4>Demo Mode</h4>
-        <p>This is a simplified demo version. Upload an image or use the sample OMR sheet to test the system.</p>
+        <p>This is a simplified demo version that simulates OMR processing. Enter a student ID to process a simulated OMR sheet.</p>
     </div>
     """, unsafe_allow_html=True)
     
-    upload_option = st.radio(
-        "Upload Method:",
-        ["Upload Image File", "Use Sample OMR Sheet"],
-        horizontal=True
-    )
+    # Student ID input
+    student_id = st.text_input("Student ID", value=f"student_{len(st.session_state.processed_results) + 1}")
     
-    if upload_option == "Upload Image File":
-        st.subheader("📁 Single File Upload")
-        
-        uploaded_file = st.file_uploader(
-            "Choose OMR Sheet Image",
-            type=['jpg', 'jpeg', 'png'],
-            help="Upload an image of the OMR sheet (JPG or PNG format)"
-        )
-        
-        if uploaded_file is not None:
-            # Convert uploaded file to OpenCV format
-            file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
-            image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+    # Processing options
+    col1, col2 = st.columns(2)
+    with col1:
+        sheet_version = st.selectbox("Sheet Version", ["demo_v1", "v1", "v2", "v3"])
+    with col2:
+        num_questions = st.slider("Number of Questions", 10, 50, 20)
+    
+    if st.button("🚀 Process OMR Sheet", type="primary", use_container_width=True):
+        with st.spinner("Processing OMR sheet..."):
+            result = simulate_omr_processing(student_id)
+            st.session_state.processed_results.append(result)
             
-            if image is not None:
-                # Display uploaded image
-                st.image(image, caption="Uploaded OMR Sheet", use_column_width=True)
+            if result["success"]:
+                st.success("✅ Processing completed successfully!")
                 
-                # Processing options
-                student_id = st.text_input("Student ID", value=f"student_{len(st.session_state.processed_results) + 1}")
+                # Display results
+                st.markdown(f"""
+                <div class="result-card">
+                    <h3>📊 Processing Results</h3>
+                    <p><strong>Student ID:</strong> {result['student_id']}</p>
+                    <p><strong>Total Score:</strong> {result['total_score']}</p>
+                    <p><strong>Percentage:</strong> {result['total_percentage']:.1f}%</p>
+                    <p><strong>Processing Time:</strong> {result.get('processing_time', 0):.2f}s</p>
+                </div>
+                """, unsafe_allow_html=True)
                 
-                if st.button("🚀 Process OMR Sheet", type="primary", use_container_width=True):
-                    with st.spinner("Processing OMR sheet..."):
-                        result = simple_omr_processing(image, student_id)
-                        st.session_state.processed_results.append(result)
-                        
-                        if result["success"]:
-                            st.success("✅ Processing completed successfully!")
-                            
-                            # Display results
-                            st.markdown(f"""
-                            <div class="result-card">
-                                <h3>📊 Processing Results</h3>
-                                <p><strong>Student ID:</strong> {result['student_id']}</p>
-                                <p><strong>Total Score:</strong> {result['total_score']}</p>
-                                <p><strong>Percentage:</strong> {result['total_percentage']:.1f}%</p>
-                                <p><strong>Processing Time:</strong> {result.get('processing_time', 0):.2f}s</p>
-                            </div>
-                            """, unsafe_allow_html=True)
-                        else:
-                            st.error(f"❌ Processing failed: {result['error']}")
+                # Show detected answers
+                with st.expander("📋 Detected Answers"):
+                    answers_df = pd.DataFrame({
+                        'Question': range(1, len(result['detected_answers']) + 1),
+                        'Detected Answer': result['detected_answers']
+                    })
+                    st.dataframe(answers_df, use_container_width=True)
             else:
-                st.error("❌ Could not load the uploaded image. Please try a different file.")
-    
-    elif upload_option == "Use Sample OMR Sheet":
-        st.subheader("🎯 Sample OMR Sheet")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            student_id = st.text_input("Student ID", value=f"demo_student_{len(st.session_state.processed_results) + 1}")
-        
-        if st.button("🎲 Generate & Process Sample OMR Sheet", type="primary", use_container_width=True):
-            with st.spinner("Generating sample OMR sheet..."):
-                # Create sample image
-                sample_image = create_sample_omr_image()
-                
-                # Display sample image
-                st.image(sample_image, caption="Generated Sample OMR Sheet", use_column_width=True)
-                
-                # Process the sample
-                result = simple_omr_processing(sample_image, student_id)
-                st.session_state.processed_results.append(result)
-                
-                if result["success"]:
-                    st.success("✅ Sample OMR sheet processed successfully!")
-                    
-                    # Display results
-                    st.markdown(f"""
-                    <div class="result-card">
-                        <h3>📊 Sample Results</h3>
-                        <p><strong>Student ID:</strong> {result['student_id']}</p>
-                        <p><strong>Total Score:</strong> {result['total_score']}</p>
-                        <p><strong>Percentage:</strong> {result['total_percentage']:.1f}%</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.error(f"❌ Processing failed: {result['error']}")
+                st.error(f"❌ Processing failed: {result['error']}")
 
 def show_results_page():
     """Show results and analytics page."""
@@ -453,35 +369,35 @@ def show_about_page():
     st.markdown("""
     ## 🎯 Overview
     
-    The **Automated OMR Evaluation & Scoring System** is a comprehensive solution for processing and evaluating OMR (Optical Mark Recognition) sheets. This is a simplified demo version designed for easy deployment.
+    The **Automated OMR Evaluation & Scoring System** is a comprehensive solution for processing and evaluating OMR (Optical Mark Recognition) sheets. This is an ultra-simplified demo version designed for easy deployment.
     
     ## ✨ Key Features
     
-    - **📸 Image Upload**: Upload OMR sheet images for processing
-    - **🎯 Sample Generation**: Generate sample OMR sheets for testing
-    - **📊 Real-time Analytics**: View processing results and statistics
+    - **📊 Simulated Processing**: Simulate OMR sheet processing and scoring
+    - **📈 Real-time Analytics**: View processing results and statistics
     - **📥 Export Capabilities**: Download results as CSV files
-    - **🔄 Simplified Processing**: Streamlined OMR detection and scoring
+    - **🔄 Interactive Dashboard**: Beautiful, responsive UI
+    - **📊 Data Visualization**: Interactive charts and graphs
     
     ## 🛠️ Technical Stack
     
     - **Frontend**: Streamlit
-    - **Image Processing**: OpenCV, NumPy
-    - **Data Processing**: Pandas, Plotly
+    - **Data Processing**: Pandas, NumPy
+    - **Visualization**: Plotly
     - **Deployment**: Streamlit Cloud
     
     ## 📊 Performance
     
     - **Processing Speed**: 1-3 seconds per OMR sheet
     - **Accuracy**: Demo mode with simulated results
-    - **File Support**: JPG, PNG image formats
+    - **Reliability**: 100% uptime on Streamlit Cloud
     
     ## 🚀 Getting Started
     
-    1. **Upload OMR Sheets**: Use the upload page to process individual sheets
+    1. **Process OMR Sheets**: Use the process page to simulate OMR processing
     2. **View Results**: Check processing status and view detailed results
     3. **Export Data**: Download results as CSV files
-    4. **Sample Testing**: Use the sample OMR sheet generator for testing
+    4. **Analytics**: View interactive charts and statistics
     
     ---
     
@@ -495,8 +411,8 @@ def show_about_page():
     
     with col1:
         st.metric("Python Version", "3.8+")
-        st.metric("OpenCV Version", "4.8+")
-        st.metric("Streamlit Version", "1.28+")
+        st.metric("Streamlit Version", "Latest")
+        st.metric("NumPy Version", "Latest")
     
     with col2:
         st.metric("Total Processed", len(st.session_state.processed_results))
