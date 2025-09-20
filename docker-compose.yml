@@ -1,0 +1,73 @@
+# OMR Evaluation System - Docker Compose
+version: '3.8'
+
+services:
+  omr-backend:
+    build: .
+    container_name: omr-backend
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./results:/app/results
+      - ./logs:/app/logs
+      - ./answer_keys:/app/answer_keys
+    environment:
+      - DATABASE_URL=sqlite:///./omr_evaluation.db
+      - UPLOAD_DIR=/app/uploads
+      - RESULTS_DIR=/app/results
+      - LOGS_DIR=/app/logs
+      - MAX_FILE_SIZE_MB=50
+      - BUBBLE_DETECTION_THRESHOLD=0.15
+      - LOG_LEVEL=INFO
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  omr-frontend:
+    build: .
+    container_name: omr-frontend
+    command: streamlit run app/main.py --server.port 8501 --server.address 0.0.0.0 --server.headless true
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./results:/app/results
+    environment:
+      - API_BASE_URL=http://omr-backend:8000
+    depends_on:
+      omr-backend:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  nginx:
+    image: nginx:alpine
+    container_name: omr-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - omr-backend
+      - omr-frontend
+    restart: unless-stopped
+
+volumes:
+  uploads:
+  results:
+  logs:
+  models:
+  answer_keys:
