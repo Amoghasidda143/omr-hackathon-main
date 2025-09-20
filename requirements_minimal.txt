@@ -1,0 +1,17 @@
+# Minimal requirements for Streamlit Cloud deployment
+# This file contains only essential dependencies to avoid conflicts
+
+# Core Streamlit
+streamlit>=1.28.0
+
+# Computer Vision (essential)
+opencv-python>=4.8.0
+numpy>=1.24.0
+Pillow>=9.0.0,<10.0.0
+
+# Data Processing
+pandas>=2.0.0
+plotly>=5.15.0
+
+# Basic utilities
+requests>=2.31.0
