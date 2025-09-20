@@ -1,5 +1,5 @@
-# Minimal requirements for Streamlit Cloud deployment
-# No OpenCV or heavy dependencies
+# Basic requirements for Streamlit Cloud deployment
+# Ultra-minimal dependencies for maximum compatibility
 
 # Core Streamlit
 streamlit==1.36.0
@@ -17,7 +17,3 @@ Pillow==9.5.0
 # Utilities
 python-dotenv==1.0.1
 requests==2.32.3
-
-# Excel support (required for .xlsx files)
-openpyxl==3.1.2
-xlrd==2.0.1
