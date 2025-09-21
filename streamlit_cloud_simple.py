@@ -304,44 +304,95 @@ def convert_excel_to_answer_key(df):
             "answers": answers
         }
     else:
-        # Try to detect columns automatically
-        possible_question_cols = [col for col in df.columns if 'question' in col.lower() or 'q' in col.lower()]
-        possible_answer_cols = [col for col in df.columns if 'answer' in col.lower() or 'a' in col.lower()]
-        possible_subject_cols = [col for col in df.columns if 'subject' in col.lower() or 's' in col.lower()]
+        # Format 4: Subject columns with question-answer pairs (like your format)
+        # Check if columns look like subject names with question-answer format
+        subject_columns = []
+        for col in df.columns:
+            col_lower = col.lower().strip()
+            # Skip if it's a common non-subject column
+            if col_lower not in ['question', 'answer', 'q', 'a', 'subject', 's', 'no', 'number']:
+                subject_columns.append(col)
         
-        if possible_question_cols and possible_answer_cols:
-            question_col = possible_question_cols[0]
-            answer_col = possible_answer_cols[0]
+        if subject_columns:
+            # Process each subject column
+            for subject_col in subject_columns:
+                subject_name = subject_col.strip()
+                answers = []
+                questions = []
+                
+                # Process each row in this column
+                for idx, row in df.iterrows():
+                    cell_value = str(row[subject_col]).strip()
+                    
+                    # Skip empty cells
+                    if cell_value == 'nan' or cell_value == '' or cell_value == 'None':
+                        continue
+                    
+                    # Parse question-answer format like "1 - a", "2 - c", etc.
+                    if ' - ' in cell_value:
+                        try:
+                            parts = cell_value.split(' - ')
+                            if len(parts) == 2:
+                                question_num = int(parts[0].strip())
+                                answer = parts[1].strip().upper()
+                                
+                                # Validate answer (A, B, C, D or multiple like A,B,C,D)
+                                if answer in ['A', 'B', 'C', 'D'] or ',' in answer:
+                                    questions.append(question_num)
+                                    answers.append(answer)
+                        except (ValueError, IndexError):
+                            continue
+                    # Handle simple answer format like "a", "b", "c", "d"
+                    elif cell_value.upper() in ['A', 'B', 'C', 'D']:
+                        questions.append(idx + 1)  # Use row number as question
+                        answers.append(cell_value.upper())
+                
+                # Only add subject if we found valid questions and answers
+                if questions and answers and len(questions) == len(answers):
+                    answer_key["subjects"][subject_name] = {
+                        "questions": questions,
+                        "answers": answers
+                    }
+        
+        # If no subject columns found, try automatic detection
+        if not answer_key["subjects"]:
+            possible_question_cols = [col for col in df.columns if 'question' in col.lower() or 'q' in col.lower()]
+            possible_answer_cols = [col for col in df.columns if 'answer' in col.lower() or 'a' in col.lower()]
+            possible_subject_cols = [col for col in df.columns if 'subject' in col.lower() or 's' in col.lower()]
             
-            if possible_subject_cols:
-                # Multiple subjects
-                subject_col = possible_subject_cols[0]
-                for subject in df[subject_col].unique():
-                    subject_data = df[df[subject_col] == subject]
-                    questions = subject_data[question_col].tolist()
-                    answers = subject_data[answer_col].tolist()
+            if possible_question_cols and possible_answer_cols:
+                question_col = possible_question_cols[0]
+                answer_col = possible_answer_cols[0]
+                
+                if possible_subject_cols:
+                    # Multiple subjects
+                    subject_col = possible_subject_cols[0]
+                    for subject in df[subject_col].unique():
+                        subject_data = df[df[subject_col] == subject]
+                        questions = subject_data[question_col].tolist()
+                        answers = subject_data[answer_col].tolist()
+                        
+                        # Convert answers to uppercase
+                        answers = [str(answer).upper().strip() for answer in answers]
+                        
+                        answer_key["subjects"][subject] = {
+                            "questions": questions,
+                            "answers": answers
+                        }
+                else:
+                    # Single subject
+                    questions = df[question_col].tolist()
+                    answers = df[answer_col].tolist()
                     
                     # Convert answers to uppercase
                     answers = [str(answer).upper().strip() for answer in answers]
                     
-                    answer_key["subjects"][subject] = {
+                    answer_key["subjects"]["General"] = {
                         "questions": questions,
                         "answers": answers
                     }
             else:
-                # Single subject
-                questions = df[question_col].tolist()
-                answers = df[answer_col].tolist()
-                
-                # Convert answers to uppercase
-                answers = [str(answer).upper().strip() for answer in answers]
-                
-                answer_key["subjects"]["General"] = {
-                    "questions": questions,
-                    "answers": answers
-                }
-        else:
-            raise ValueError("Excel file must have columns for questions and answers. Expected columns: 'Subject', 'Question', 'Answer' or 'Question', 'Answer' or 'Q', 'A'")
+                raise ValueError("Excel file format not recognized. Expected formats:\n1. Subject columns with 'Question - Answer' format\n2. Subject, Question, Answer columns\n3. Question, Answer columns\n4. Q, A columns")
     
     return answer_key
 
@@ -372,10 +423,19 @@ def validate_answer_key(answer_key):
             if len(questions) != len(answers):
                 return False
             
-            # Check answer format
+            # Check answer format (allow single answers or multiple like "A,B,C,D")
             for answer in answers:
-                if answer not in ['A', 'B', 'C', 'D']:
-                    return False
+                answer_str = str(answer).strip()
+                # Check if it's a single answer
+                if answer_str in ['A', 'B', 'C', 'D']:
+                    continue
+                # Check if it's multiple answers separated by commas
+                elif ',' in answer_str:
+                    multiple_answers = [a.strip() for a in answer_str.split(',')]
+                    if all(a in ['A', 'B', 'C', 'D'] for a in multiple_answers):
+                        continue
+                # If neither, it's invalid
+                return False
         
         return True
     except:
