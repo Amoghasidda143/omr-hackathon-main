@@ -148,9 +148,43 @@ def simulate_omr_processing(student_answers, answer_key, student_id):
             for i, question_num in enumerate(questions):
                 if question_num <= len(student_answers):
                     student_choice = student_answers[question_num - 1]
-                    correct_choice = [0] if subject_data["answers"][i] == "A" else [1] if subject_data["answers"][i] == "B" else [2] if subject_data["answers"][i] == "C" else [3]
+                    correct_answer = subject_data["answers"][i]
                     
-                    if student_choice == correct_choice and len(student_choice) > 0:
+                    # Handle multiple correct answers (like "A,B,C,D")
+                    if ',' in correct_answer:
+                        correct_choices = [correct_answer.strip() for correct_answer in correct_answer.split(',')]
+                    else:
+                        correct_choices = [correct_answer.strip()]
+                    
+                    # Convert student choice to answer format
+                    if isinstance(student_choice, list) and len(student_choice) > 0:
+                        # Convert numeric choice to letter
+                        student_answer = []
+                        for choice in student_choice:
+                            if choice == 0:
+                                student_answer.append('A')
+                            elif choice == 1:
+                                student_answer.append('B')
+                            elif choice == 2:
+                                student_answer.append('C')
+                            elif choice == 3:
+                                student_answer.append('D')
+                        student_answer_str = ','.join(student_answer)
+                    else:
+                        student_answer_str = str(student_choice) if student_choice else ""
+                    
+                    # Check if student answer matches any correct answer
+                    is_correct = False
+                    for correct_choice in correct_choices:
+                        if student_answer_str.upper() == correct_choice.upper():
+                            is_correct = True
+                            break
+                        # Also check for partial matches (single letter in multiple choice)
+                        elif correct_choice in student_answer_str.upper():
+                            is_correct = True
+                            break
+                    
+                    if is_correct:
                         correct_count += 1
                         total_correct += 1
                     
@@ -174,6 +208,7 @@ def simulate_omr_processing(student_answers, answer_key, student_id):
             "total_score": total_correct,
             "total_percentage": total_percentage,
             "subject_scores": subject_scores,
+            "student_answers": student_answers,  # Include student answers for transparency
             "processing_time": 0.5,
             "timestamp": datetime.now().isoformat()
         }
@@ -683,15 +718,18 @@ def show_upload_page():
             
             if st.button("🚀 Process OMR Sheet", type="primary", use_container_width=True):
                 with st.spinner("Processing OMR sheet..."):
-                    # Simulate student answers (in real implementation, this would be extracted from image)
+                    # Generate unique student answers based on student ID
+                    import random
+                    random.seed(hash(student_id))  # Use student ID as seed for consistent results
+                    
                     student_answers = []
                     for i in range(100):
-                        if i < 20:
-                            student_answers.append([0])  # Answer A for first 20 questions
-                        elif i < 40:
-                            student_answers.append([1])  # Answer B for next 20 questions
+                        # Generate random answers for each student
+                        if random.random() < 0.8:  # 80% chance of answering
+                            answer_choice = random.choice([0, 1, 2, 3])  # A, B, C, D
+                            student_answers.append([answer_choice])
                         else:
-                            student_answers.append([])  # No answer for remaining questions
+                            student_answers.append([])  # No answer
                     
                     result = simulate_omr_processing(student_answers, st.session_state.answer_key, student_id)
                     st.session_state.processed_results.append(result)
@@ -726,15 +764,18 @@ def show_upload_page():
                 # Display sample image
                 st.image(sample_image, caption="Generated Sample OMR Sheet", use_column_width=True)
                 
-                # Simulate processing
+                # Generate unique student answers based on student ID
+                import random
+                random.seed(hash(student_id))  # Use student ID as seed for consistent results
+                
                 student_answers = []
                 for i in range(100):
-                    if i < 15:
-                        student_answers.append([0])  # Answer A for first 15 questions
-                    elif i < 30:
-                        student_answers.append([1])  # Answer B for next 15 questions
+                    # Generate random answers for each student
+                    if random.random() < 0.75:  # 75% chance of answering
+                        answer_choice = random.choice([0, 1, 2, 3])  # A, B, C, D
+                        student_answers.append([answer_choice])
                     else:
-                        student_answers.append([])  # No answer for remaining questions
+                        student_answers.append([])  # No answer
                 
                 result = simulate_omr_processing(student_answers, st.session_state.answer_key, student_id)
                 st.session_state.processed_results.append(result)
@@ -833,6 +874,31 @@ def display_processing_result(result):
             # Visualization
             fig = px.bar(df, x='Subject', y='Percentage', title='Subject-wise Performance')
             st.plotly_chart(fig, use_container_width=True)
+            
+            # Show detailed answer analysis
+            with st.expander("🔍 Detailed Answer Analysis"):
+                st.info("💡 **Note**: This is a simulation. In a real implementation, answers would be extracted from the uploaded OMR image.")
+                
+                # Show some sample answers for transparency
+                st.write("**Sample Answers (First 20 questions):**")
+                sample_answers = []
+                for i in range(min(20, len(result.get('student_answers', [])))):
+                    answer = result.get('student_answers', [])[i] if i < len(result.get('student_answers', [])) else []
+                    if isinstance(answer, list) and len(answer) > 0:
+                        answer_str = ''.join(['A' if x==0 else 'B' if x==1 else 'C' if x==2 else 'D' for x in answer])
+                    else:
+                        answer_str = "No answer"
+                    sample_answers.append(f"Q{i+1}: {answer_str}")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    for i in range(0, len(sample_answers), 2):
+                        if i < len(sample_answers):
+                            st.write(sample_answers[i])
+                with col2:
+                    for i in range(1, len(sample_answers), 2):
+                        if i < len(sample_answers):
+                            st.write(sample_answers[i])
 
 def show_results_page():
     """Show results and analytics page."""
