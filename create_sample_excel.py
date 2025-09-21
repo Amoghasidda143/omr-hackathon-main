@@ -22,3 +22,5 @@ print("Columns:", df.columns.tolist())
 print("Shape:", df.shape)
 print("\nFirst 10 rows:")
 print(df.head(10))
+
+

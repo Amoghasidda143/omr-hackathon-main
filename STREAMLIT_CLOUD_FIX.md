@@ -160,3 +160,5 @@ streamlit run streamlit_cloud_simple.py
 **🎉 The OMR Evaluation System is now fixed for Streamlit Cloud deployment!**
 
 *Teachers can access it from anywhere and process OMR sheets efficiently without OpenCV dependencies.*
+
+

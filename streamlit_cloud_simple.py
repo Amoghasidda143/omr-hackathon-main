@@ -922,10 +922,23 @@ def show_answer_keys_page():
                         answer_key_data = convert_excel_to_answer_key(df)
                     except ImportError as e:
                         if "openpyxl" in str(e):
-                            st.error("❌ Excel support requires openpyxl library. Please ensure requirements_cloud_minimal.txt includes openpyxl==3.1.2")
+                            st.error("""
+                            ❌ **Excel support requires openpyxl library**
+                            
+                            **Solutions:**
+                            1. **Use Basic Version**: Deploy `streamlit_cloud_basic.py` instead (no Excel support)
+                            2. **Check Requirements**: Ensure `requirements_cloud_minimal.txt` includes `openpyxl>=3.0.0`
+                            3. **Use CSV Instead**: Convert your Excel file to CSV format
+                            4. **Manual Entry**: Use the manual answer key creation option
+                            """)
+                            st.info("💡 **Quick Fix**: Try uploading your Excel file as CSV instead, or use the manual entry option.")
                             return
                         else:
                             raise e
+                    except Exception as e:
+                        st.error(f"❌ Error reading Excel file: {str(e)}")
+                        st.info("💡 **Tip**: Try converting your Excel file to CSV format or use manual entry.")
+                        return
                 else:
                     st.error("Unsupported file type. Please upload JSON, TXT, CSV, or Excel files.")
                     return
