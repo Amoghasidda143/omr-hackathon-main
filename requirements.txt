@@ -1,24 +1,24 @@
 # Minimal requirements for Streamlit Cloud deployment
-# No OpenCV or heavy dependencies
+# Compatible with Python 3.13
 
 # Core Streamlit
-streamlit==1.28.1
+streamlit>=1.28.0
 
-# Data Processing
-numpy==1.24.3
-pandas==2.0.3
+# Data Processing - Python 3.13 compatible versions
+numpy>=1.26.0
+pandas>=2.0.0
 
 # Visualization
-plotly==5.15.0
+plotly>=5.15.0
 
 # Image Processing (lightweight)
-Pillow==9.5.0
+Pillow>=9.0.0
 
 # Utilities
-python-dotenv==1.0.0
-requests==2.31.0
+python-dotenv>=1.0.0
+requests>=2.28.0
 
-# Excel support (required for .xlsx files) - Fixed versions
-openpyxl==3.1.2
-xlrd==2.0.1
-et-xmlfile==1.1.0
+# Excel support (required for .xlsx files) - Python 3.13 compatible
+openpyxl>=3.1.0
+xlrd>=2.0.0
+et-xmlfile>=1.1.0
