@@ -2,23 +2,23 @@
 # No OpenCV or heavy dependencies
 
 # Core Streamlit
-streamlit>=1.28.0
+streamlit==1.28.1
 
 # Data Processing
-numpy>=1.24.0
-pandas>=2.0.0
+numpy==1.24.3
+pandas==2.0.3
 
 # Visualization
-plotly>=5.15.0
+plotly==5.15.0
 
 # Image Processing (lightweight)
-Pillow>=9.0.0
+Pillow==9.5.0
 
 # Utilities
-python-dotenv>=1.0.0
-requests>=2.28.0
+python-dotenv==1.0.0
+requests==2.31.0
 
-# Excel support (required for .xlsx files)
-openpyxl>=3.0.0
-xlrd>=2.0.0
-et-xmlfile>=1.1.0
+# Excel support (required for .xlsx files) - Fixed versions
+openpyxl==3.1.2
+xlrd==2.0.1
+et-xmlfile==1.1.0

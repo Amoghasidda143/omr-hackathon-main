@@ -918,6 +918,8 @@ def show_answer_keys_page():
                 elif uploaded_file.type in ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-excel"]:
                     # Convert Excel to answer key format
                     try:
+                        # Try to import openpyxl first
+                        import openpyxl
                         df = pd.read_excel(uploaded_file)
                         answer_key_data = convert_excel_to_answer_key(df)
                     except ImportError as e:
@@ -925,13 +927,32 @@ def show_answer_keys_page():
                             st.error("""
                             ❌ **Excel support requires openpyxl library**
                             
-                            **Solutions:**
-                            1. **Use Basic Version**: Deploy `streamlit_cloud_basic.py` instead (no Excel support)
-                            2. **Check Requirements**: Ensure `requirements_cloud_minimal.txt` includes `openpyxl>=3.0.0`
-                            3. **Use CSV Instead**: Convert your Excel file to CSV format
-                            4. **Manual Entry**: Use the manual answer key creation option
+                            **Immediate Solutions:**
+                            1. **Redeploy with Fixed Requirements**: The requirements file has been updated with fixed versions
+                            2. **Use CSV Instead**: Convert your Excel file to CSV format (same functionality)
+                            3. **Manual Entry**: Use the manual answer key creation option
+                            4. **Use Basic Version**: Deploy `streamlit_cloud_basic.py` instead
                             """)
-                            st.info("💡 **Quick Fix**: Try uploading your Excel file as CSV instead, or use the manual entry option.")
+                            
+                            # Provide CSV conversion option
+                            st.markdown("### 🔄 **Quick CSV Conversion Option**")
+                            st.info("""
+                            **Convert your Excel file to CSV:**
+                            1. Open your Excel file
+                            2. File → Save As → CSV (Comma Separated Values)
+                            3. Upload the CSV file instead
+                            4. Use the same column format: Subject, Question, Answer
+                            """)
+                            
+                            # Show CSV format example
+                            st.markdown("### 📋 **CSV Format Example**")
+                            csv_example = """Subject,Question,Answer
+Mathematics,1,A
+Mathematics,2,B
+Physics,11,C
+Physics,12,D"""
+                            st.code(csv_example, language="csv")
+                            
                             return
                         else:
                             raise e
