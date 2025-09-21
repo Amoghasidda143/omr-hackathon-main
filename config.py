@@ -182,6 +182,7 @@ def validate_config() -> Dict[str, Any]:
 def get_config_dict() -> Dict[str, Any]:
     """
     Get all configuration as a dictionary.
+    
     Returns:
         Configuration dictionary
     """
