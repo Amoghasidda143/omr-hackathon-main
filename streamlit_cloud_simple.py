@@ -345,7 +345,7 @@ def convert_excel_to_answer_key(df):
         for col in df.columns:
             col_lower = col.lower().strip()
             # Skip if it's a common non-subject column
-            if col_lower not in ['question', 'answer', 'q', 'a', 'subject', 's', 'no', 'number']:
+            if col_lower not in ['question', 'answer', 'q', 'a', 'subject', 's', 'no', 'number', 'index']:
                 subject_columns.append(col)
         
         if subject_columns:
@@ -388,6 +388,13 @@ def convert_excel_to_answer_key(df):
                         "questions": questions,
                         "answers": answers
                     }
+                else:
+                    # Debug: show what was found for this subject
+                    print(f"Debug: Subject '{subject_name}' - Questions: {len(questions)}, Answers: {len(answers)}")
+                    if questions:
+                        print(f"Debug: Sample questions: {questions[:5]}")
+                    if answers:
+                        print(f"Debug: Sample answers: {answers[:5]}")
         
         # If no subject columns found, try automatic detection
         if not answer_key["subjects"]:
@@ -1094,9 +1101,21 @@ Physics,12,D"""
                 if validate_answer_key(answer_key_data):
                     st.session_state.answer_key = answer_key_data
                     st.success("✅ Answer key uploaded successfully!")
+                    
+                    # Show detailed subject information
+                    st.info(f"📚 **Processed Subjects:** {len(answer_key_data['subjects'])}")
+                    for subject_name, subject_data in answer_key_data["subjects"].items():
+                        st.write(f"• **{subject_name}:** {len(subject_data['questions'])} questions")
+                    
                     display_answer_key_summary(answer_key_data)
                 else:
                     st.error("❌ Invalid answer key format. Please check your file structure.")
+                    
+                    # Show debug information
+                    if answer_key_data and "subjects" in answer_key_data:
+                        st.warning(f"⚠️ **Debug Info:** Found {len(answer_key_data['subjects'])} subjects")
+                        for subject_name, subject_data in answer_key_data["subjects"].items():
+                            st.write(f"• {subject_name}: {len(subject_data.get('questions', []))} questions, {len(subject_data.get('answers', []))} answers")
                     
             except Exception as e:
                 st.error(f"❌ Error processing file: {str(e)}")
